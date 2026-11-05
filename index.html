@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Muestrario · Detector de color</title>
+  <meta name="description" content="Sube una foto, toca un punto y encuentra el color más parecido en RAL Classic y Pantone.">
+  <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1915" media="(prefers-color-scheme: dark)">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg transform='translate(10 54)'%3E%3Crect width='48' height='12' y='-6' rx='3' fill='%23f2b705' transform='rotate(-80)'/%3E%3Crect width='48' height='12' y='-6' rx='3' fill='%23e8590c' transform='rotate(-55)'/%3E%3Crect width='48' height='12' y='-6' rx='3' fill='%23c2255c' transform='rotate(-30)'/%3E%3Crect width='48' height='12' y='-6' rx='3' fill='%231971c2' transform='rotate(-5)'/%3E%3Ccircle r='4' fill='%23fff'/%3E%3C/g%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-logo" viewBox="0 0 64 64" aria-hidden="true">
+        <g transform="translate(10 54)">
+          <rect width="48" height="12" y="-6" rx="3" fill="#f2b705" transform="rotate(-80)"/>
+          <rect width="48" height="12" y="-6" rx="3" fill="#e8590c" transform="rotate(-55)"/>
+          <rect width="48" height="12" y="-6" rx="3" fill="#c2255c" transform="rotate(-30)"/>
+          <rect width="48" height="12" y="-6" rx="3" fill="#1971c2" transform="rotate(-5)"/>
+          <circle r="4" fill="#fff" stroke="#00000033"/>
+        </g>
+      </svg>
+      <div>
+        <h1>Muestrario</h1>
+        <p>Encuentra el color de una foto en <strong>RAL Classic</strong> y <strong>Pantone</strong></p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="card stage-card" aria-label="Imagen">
+      <div id="stage" class="stage">
+        <div id="drop" class="drop">
+          <div id="dropFan" class="fan fan-mini" aria-hidden="true"></div>
+          <h2>Sube una foto</h2>
+          <p>Arrástrala aquí, pégala con <kbd>Ctrl</kbd>+<kbd>V</kbd> o elige una</p>
+          <div class="drop-buttons">
+            <label class="btn primary">Elegir imagen<input type="file" id="file" accept="image/*" hidden></label>
+            <label class="btn">Hacer foto<input type="file" id="camera" accept="image/*" capture="environment" hidden></label>
+          </div>
+        </div>
+        <canvas id="view" hidden></canvas>
+        <canvas id="loupe" class="loupe" width="300" height="300" hidden></canvas>
+      </div>
+
+      <div id="toolbar" class="toolbar" hidden>
+        <div class="seg" role="group" aria-label="Tamaño de la muestra">
+          <span>Muestra</span>
+          <button type="button" data-r="0">1 px</button>
+          <button type="button" data-r="2" class="on">5×5</button>
+          <button type="button" data-r="5">11×11</button>
+          <button type="button" data-r="10">21×21</button>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" id="btnWhite" class="btn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/><circle cx="12" cy="12" r="4"/></svg>
+            Corregir luz
+          </button>
+          <button type="button" id="btnResetWhite" class="btn ghost" hidden>Quitar corrección</button>
+          <label class="btn ghost">Otra foto<input type="file" id="file2" accept="image/*" hidden></label>
+        </div>
+      </div>
+      <p id="hint" class="hint" hidden></p>
+
+      <div id="dominantWrap" class="dominant" hidden>
+        <h3>Colores principales de la foto</h3>
+        <div id="dominant" class="chips"></div>
+      </div>
+    </section>
+
+    <section class="card result-card" aria-live="polite">
+      <div id="resultEmpty" class="result-empty">
+        <h2>¿Cómo funciona?</h2>
+        <ol class="steps">
+          <li><b>Sube una foto</b> del objeto, pared, tela o pieza.</li>
+          <li><b>Toca el punto</b> que quieres medir. Mantén pulsado y arrastra para afinar con la lupa.</li>
+          <li><b>Mira el abanico</b>: las cartas RAL Classic y Pantone más parecidas, con su diferencia de color (ΔE).</li>
+        </ol>
+        <p class="tip"><b>Truco:</b> si en la foto sale algo blanco o gris (un papel, una pared), pulsa <em>Corregir luz</em> y tócalo. Así se quita el tono amarillento o azulado de la luz y el resultado es mucho más fiable.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="picked">
+          <div id="pickedChip" class="chip-card">
+            <div class="chip-color"></div>
+            <div class="chip-label"><span>TU COLOR</span><b id="pickedHex"></b></div>
+          </div>
+          <dl id="pickedValues" class="values"></dl>
+        </div>
+        <div class="picked-actions">
+          <button type="button" id="btnSave" class="btn primary">Guardar en mi paleta</button>
+        </div>
+
+        <h3 class="section-title">Equivalencias más cercanas</h3>
+        <div id="fan" class="fan"></div>
+
+        <div class="lists">
+          <div>
+            <h4>RAL Classic</h4>
+            <ol id="listRal" class="match-list"></ol>
+          </div>
+          <div>
+            <h4>Pantone <span class="badge-approx">aprox.</span></h4>
+            <ol id="listPan" class="match-list"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="paletteCard" class="card palette-card" hidden>
+      <div class="palette-head">
+        <h3>Mi paleta</h3>
+        <div>
+          <button type="button" id="btnCopyPalette" class="btn ghost">Copiar</button>
+          <button type="button" id="btnClearPalette" class="btn ghost">Vaciar</button>
+        </div>
+      </div>
+      <div id="palette" class="palette"></div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Los colores de una foto dependen de la cámara, la luz y la pantalla: úsalo como orientación y confirma siempre con la carta física.
+      Los valores <b>Pantone</b> son equivalencias aproximadas publicadas por terceros, no datos oficiales de Pantone LLC.
+      RAL Classic según valores sRGB de referencia. PANTONE® y RAL® son marcas de sus respectivos propietarios.</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
